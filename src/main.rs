@@ -1,23 +1,23 @@
 
-fn getFrequency() -> f32{
-    use std::io::{stdin,stdout,Write};
+fn getFrequency(value:i32) -> f32{
+    // use std::io::{stdin,stdout,Write};
 
-    let mut s=String::new();
-    print!("Please enter some text: ");
-    let _=stdout().flush();
-    stdin().read_line(&mut s).expect("Did not enter a correct string");
+    // let mut s=String::new();
+    // print!("Please enter some text: ");
+    // let _=stdout().flush();
+    // stdin().read_line(&mut s).expect("Did not enter a correct string");
 
-    if let Some('\n')=s.chars().next_back() {
-        s.pop();
-    }
-    if let Some('\r')=s.chars().next_back() {
-        s.pop();
-    }
-    let x: f32= s.trim().parse().expect("Input not an integer");
-    println!("You typed: {}",s);
-    let power = (x-69.00)/12.00;
+    // if let Some('\n')=s.chars().next_back() {
+    //     s.pop();
+    // }
+    // if let Some('\r')=s.chars().next_back() {
+    //     s.pop();
+    // }
+    // let x: f32= s.trim().parse().expect("Input not an integer");
+    // println!("You typed: {}",s);
+    let power = (value as f32-69.00)/12.00;
     let frequency:f32 = (440.00*2.00_f32.powf(power)).into();
-    println!("Frequency of {} is: {:.2}", x,frequency);
+    println!("Frequency of {} is: {:.2}", value,frequency);
     return frequency;
 }
 
@@ -70,15 +70,12 @@ impl Source for WavetableOscillator {
     fn channels(&self) -> u16 {
         return 1;
     }
-
     fn sample_rate(&self) -> u32 {
         return self.sample_rate;
     }   
-
     fn current_frame_len(&self) -> Option<usize> {
         return None;
     }
-
     fn total_duration(&self) -> Option<Duration> {
         return None;
     }
@@ -92,21 +89,28 @@ impl Iterator for WavetableOscillator {
     }
 }
 
-fn main() {
-    let wave_table_size = 64;
-    let mut wave_table: Vec<f32> = Vec::with_capacity(wave_table_size);
-    
-    for n in 0..wave_table_size {
-        wave_table.push((2.0 * std::f32::consts::PI * n as f32 / wave_table_size as f32).sin());
-    }
-    
-    let mut oscillator = WavetableOscillator::new(44100, wave_table);
-    
-    oscillator.set_frequency(getFrequency());
-    
-    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    
-    let _result = stream_handle.play_raw(oscillator.convert_samples());
 
-    std::thread::sleep(std::time::Duration::from_secs(5));
+fn main() {
+    println!("Never Gonna Give You Up!");
+    //part 1
+    let a = [69];
+    let b = [3000];
+    //part 2
+    // let a = [67,69,72,69,76,76,74,67,69,72,69,74,74,72];
+    // let b = [200,200,200,200,400,400,600,200,200,200,200,400,400,600];
+    //part 3
+    for it in a.iter().zip(b.iter()){
+        let (ai,bi) = it;
+        let wave_table_size = 64;
+        let mut wave_table: Vec<f32> = Vec::with_capacity(wave_table_size);
+
+        for n in 0..wave_table_size {
+            wave_table.push((2.0 * std::f32::consts::PI * n as f32 / wave_table_size as f32).sin());
+        }
+        let mut oscillator = WavetableOscillator::new(44100, wave_table);
+        oscillator.set_frequency(getFrequency(*ai));
+        let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+        let _result = stream_handle.play_raw(oscillator.convert_samples());
+        std::thread::sleep(std::time::Duration::from_millis(*bi));
+    }
 }

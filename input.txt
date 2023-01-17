@@ -1,0 +1,29 @@
+NoteOn          0.000082 2 55 82
+NoteOff         1.000000 2 55 0
+NoteOn          0.000082 2 69 82
+StringDetune    0.100000 2    10
+StringDetune    0.100000 2    30
+StringDetune    0.100000 2    50
+NoteOn          0.000000 2 69 82
+StringDetune    0.100000 2    40
+StringDetune    0.100000 2    22
+StringDetune    0.100000 2    12
+//
+StringDamping   0.000100 2 0.0
+NoteOn          0.000082 2 55 82
+NoteOn          0.200000 2 62 82
+NoteOn          0.100000 2 71 82
+NoteOn          0.200000 2 79 82
+NoteOff         1.000000 2 55 82
+NoteOff         0.000000 2 62 82
+NoteOff         0.000000 2 71 82
+NoteOff         0.000000 2 79 82
+StringDamping  =4.000000 2 0.0
+NoteOn          0.000082 2 55 82
+NoteOn          0.200000 2 62 82
+NoteOn          0.100000 2 71 82
+NoteOn          0.200000 2 79 82
+NoteOff         1.000000 2 55 82
+NoteOff         0.000000 2 62 82
+NoteOff         0.000000 2 71 82
+NoteOff         0.000000 2 79 82
