@@ -1,5 +1,4 @@
-
-fn getFrequency(value:i32) -> f32{
+fn get_frequency(value:i32) -> f32{
     // use std::io::{stdin,stdout,Write};
 
     // let mut s=String::new();
@@ -92,13 +91,21 @@ impl Iterator for WavetableOscillator {
 
 fn main() {
     println!("Never Gonna Give You Up!");
-    //part 1
-    let a = [69];
-    let b = [3000];
-    //part 2
-    // let a = [67,69,72,69,76,76,74,67,69,72,69,74,74,72];
-    // let b = [200,200,200,200,400,400,600,200,200,200,200,400,400,600];
+    //part 1 (Plays 440Hz note for 3 seconds)
+    // let a = [69];
+    // let b = [3000];
+    //part 2 (Plays Never Gonna Give You Up by Rick Astley)
+    let a = [67,69,72,69,76,76,74,67,69,72,69,74,74,72];
+    let b = [150,150,150,150,300,300,450,150,150,150,150,300,300,450];
     //part 3
+    //input txt file
+    //parse file
+    //assign frequency
+    //noteon play freq for n ms
+    //noteoff play -1 for n ms
+
+
+
     for it in a.iter().zip(b.iter()){
         let (ai,bi) = it;
         let wave_table_size = 64;
@@ -108,7 +115,7 @@ fn main() {
             wave_table.push((2.0 * std::f32::consts::PI * n as f32 / wave_table_size as f32).sin());
         }
         let mut oscillator = WavetableOscillator::new(44100, wave_table);
-        oscillator.set_frequency(getFrequency(*ai));
+        oscillator.set_frequency(get_frequency(*ai));
         let (_stream, stream_handle) = OutputStream::try_default().unwrap();
         let _result = stream_handle.play_raw(oscillator.convert_samples());
         std::thread::sleep(std::time::Duration::from_millis(*bi));
