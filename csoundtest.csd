@@ -20,12 +20,23 @@ instr 1
   out a1
 endin
 
+instr 2
+; variable for output,  instrument type,  amplitude,  pitch input 
+  iamp = 5000
+  icps = 220
+  iphs = 0
+
+  a2 oscils iamp, icps, iphs
+  out a2
+endin
+
 </CsInstruments>
 <CsScore>
 ; plays three notes in succession
 ; instrument  time to play at   length to play  frequency to play
   i1          0                 1               440
   i1          1                 1               440
+  i2          1                 1               220
   i1          2                 1               440
 </CsScore>
 </CsoundSynthesizer>
