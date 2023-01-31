@@ -14,3 +14,5 @@ Assignment 1: Added MIDI functionallity and CSound functionality.
 Project Idea: Simple Voice SYnthesizer Project based on Scruffy's Inkling Voice Synthesis
                 Using Python: THe project takes in a voice sample (preferably a microphone) and using synthesizers to model it into an inkling voice
                 
+### Week 3:
+Assignment 1 Code Details:
