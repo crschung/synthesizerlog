@@ -1,9 +1,10 @@
-use basic_waves::{NoiseWave, SawWave, SineWave, SquareWave, TriangleWave};
+// use basic_waves::{NoiseWave, SawWave, SineWave, SquareWave, TriangleWave};
 use core::time::Duration;
-use rodio::{source::Source, OutputStream, Sink};
+use rodio::{source::Source, source::SineWave, OutputStream, buffer::SamplesBuffer, Sink};
+// use rodio::device::default_output_device;
 use std::fs::File;
-use std::io;
-use std::io::{prelude::*, stdin, stdout, BufReader, Write};
+use std::{io, result};
+use std::io::{prelude::*, stdin, stdout, BufReader, Write, BufWriter};
 //use std::collections::BTreeMap;
 static mut END_POINT: f32 = 3.0;
 
@@ -15,11 +16,11 @@ struct WavetableOscillator {
 }
 
 impl WavetableOscillator {
-    fn new(sample_rate: u32, wave_table: Vec<f32>) -> WavetableOscillator {
+    fn new(sample_rate: u32, wave_table: Vec<f32>, index:f32) -> WavetableOscillator {
         return WavetableOscillator {
-            sample_rate: sample_rate,
-            wave_table: wave_table,
-            index: 0.0,
+            sample_rate,
+            wave_table,
+            index,
             index_increment: 0.0,
         };
     }
@@ -32,18 +33,19 @@ impl WavetableOscillator {
         let sample = self.lerp();
         self.index += self.index_increment;
         self.index %= self.wave_table.len() as f32;
+        // println!("{}",sample);
         return sample;
     }
 
     fn lerp(&self) -> f32 {
-        let truncated_index = self.index as usize;
-        let next_index = (truncated_index + 1) % self.wave_table.len();
+        let truncated_index = self.index;
+        let next_index = (truncated_index + 1.0) % self.wave_table.len() as f32;
 
         let next_index_weight = self.index - truncated_index as f32;
         let truncated_index_weight = 1.0 - next_index_weight;
 
-        return truncated_index_weight * self.wave_table[truncated_index]
-            + next_index_weight * self.wave_table[next_index];
+        return truncated_index_weight * self.wave_table[truncated_index as usize]
+            + next_index_weight * self.wave_table[next_index as usize];
     }
 }
 
@@ -94,19 +96,22 @@ fn read_lines() -> Vec<String> {
     }
     return methods;
 }
+// fn get_freq(){
+//     let mut frames = 1000;
+//     let mut phInc = 2.0 * std::f32::consts::PI * 440.0 / 48000.0;
+//      for i in 0..frames{
+//         let y = self._phase.sin();
+//         _phase += phaseInc;
+//         self._queue.push(y as i32 as char);
+//      }
+// }
 
 fn run_oscillator(a: i32, b: i32, end: f32) -> f32 {
-    let wave_table_size = 1024;
+    let wave_table_size = 44100;
     let mut wave_table: Vec<f32> = Vec::with_capacity(wave_table_size);
-    // wave_table.push(end);
     // println!("{}", wave_table[0]);
     for n in 0..wave_table_size {
-        if n == wave_table_size-1{
-            wave_table.push(0.0);
-        }
-        else{
             wave_table.push((2.0 * std::f32::consts::PI * n as f32 / wave_table_size as f32).sin());
-        }
         //TODO: Noise
         // wave_table.push((2.0 * std::f32::consts::PI * n as f32 / wave_table_size as f32 ) - std::f32::consts::PI/std::f32::consts::PI);
         //sawtooth
@@ -115,43 +120,39 @@ fn run_oscillator(a: i32, b: i32, end: f32) -> f32 {
         // wave_table.push(((2.0 * std::f32::consts::PI * n as f32 / wave_table_size as f32 ) - std::f32::consts::PI/std::f32::consts::PI).signum());
         //triangle
         // wave_table.push(1.0 - 2.0 * ((std::f32::consts::PI * n as f32 / wave_table_size as f32) - std::f32::consts::PI / std::f32::consts::PI).abs());
-        if n==0 || n == wave_table_size-1{
-            println!("{}", wave_table[n]);
-        }
-        
     }
-    let output = wave_table[wave_table_size-1];
-    let mut oscillator = WavetableOscillator::new(44100, wave_table);
-    //uncomment for part 3
-    // if a >= 0 {
+    // let mut oscillator = WavetableOscillator::new(44100, wave_table.clone(),end);
+    // //part 6
+    // let mut oscillator2 = WavetableOscillator::new(44100, wave_table.clone(),end);
+    // let mut oscillator_storage: Vec<WavetableOscillator> = vec![];
     oscillator.set_frequency(get_frequency(a));
-    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    let _result = stream_handle.play_raw(oscillator.convert_samples());
-    // println!("{}",a);
-    // let sink = Sink::try_new(&stream_handle).unwrap();
-    //part 4 (uncomment to test different oscillator types)
-    // let test = SineWave::new(get_frequency(a), 44100);
-    // let test2 = NoiseWave::new(get_frequency(a) as u64, 44100);
-    // let test = TriangleWave::new(get_frequency(a), 44100);
-    // let test = SquareWave::new(get_frequency(a), 44100);
-    // let test = SawWave::new(get_frequency(a), 44100);
-    // sink.set_volume(0.1);
-    //uncomment when running part 4
-    // sink.append(test);
+    // oscillator2.set_frequency(get_frequency(a+6));
+    // // oscillator_storage.push(oscillator);
+    // // oscillator_storage.push(oscillator2);
 
-    std::thread::sleep(std::time::Duration::from_millis(b as u64));
+    // //uncomment for part 3
+    // // if a >= 0 {
+    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+    // // for i in 0..oscillator_storage.len(){
+    //     let i =1;
+    //     let _result = stream_handle.play_raw(oscillator.convert_samples());
+    //     std::thread::sleep(std::time::Duration::from_millis(b as u64));
+    // // }
     //uncomment for part 3
     //}
-    return output;
+    let sine_wave = SineWave::new(440);
+    let buffer = SamplesBuffer::new(1, 44000, sine_wave);
+    let _result = stream_handle.play_raw(buffer);
+    return end;
 }
 
 fn main() {
     //part 1 (Plays 440Hz note for 3 seconds)
-    let a = [69];
-    let b = [3000];
+    // let a = [69];
+    // let b = [100];
     //part 2 (Plays Nokia Ringtone)
-    // let a = [76, 74, 66, 68, 73, 71, 62, 64, 71, 69, 61, 64, 69];
-    // let b = [150, 150, 300, 300, 150, 150, 300, 300, 150, 150, 300, 300, 600];
+    let a  = [76, 74, 66, 68, 73, 71, 62, 64, 71, 69, 61, 64, 69];
+    let b = [150, 150, 300, 300, 150, 150, 300, 300, 150, 150, 300, 300, 600];
     // let mut b: Vec<i32> = vec![];
     // for i in 0..a.len(){
     //     b.push(10000);
@@ -160,6 +161,9 @@ fn main() {
     //part 3
     // let mut a: Vec<i32> = vec![];
     // let mut b: Vec<f64> = vec![];
+    // for i in 0..13{
+    //     b.push(300.0);
+    // }
     // let words = read_lines();
     // let mut iterator = 0;
     // while iterator < words.len(){
@@ -175,8 +179,7 @@ fn main() {
     //         }
     //     // println!("{}",words[iterator]);
     //     iterator+=1;
-    // }
-
+    // } 
     for it in a.iter().zip(b.iter()) {
         let (ai, bi) = it;
         println!("--------------");
