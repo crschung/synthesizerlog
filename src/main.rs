@@ -1,12 +1,12 @@
 // use basic_waves::{NoiseWave, SawWave, SineWave, SquareWave, TriangleWave};
 use core::time::Duration;
-use rodio::{source::Source, source::SineWave, OutputStream, buffer::SamplesBuffer, Sink};
-// use rodio::device::default_output_device;
-use std::fs::File;
+use rodio::{source::Source, OutputStream, buffer::SamplesBuffer, Sink};
+use std::fs::{File, OpenOptions};
 use std::{io, result};
 use std::io::{prelude::*, stdin, stdout, BufReader, Write, BufWriter};
 //use std::collections::BTreeMap;
-static mut END_POINT: f32 = 3.0;
+use std::path::Path;
+use hound;
 
 struct WavetableOscillator {
     sample_rate: u32,
@@ -20,7 +20,7 @@ impl WavetableOscillator {
         return WavetableOscillator {
             sample_rate,
             wave_table,
-            index,
+            index: 0.0,
             index_increment: 0.0,
         };
     }
@@ -106,11 +106,11 @@ fn read_lines() -> Vec<String> {
 //      }
 // }
 
-fn run_oscillator(a: i32, b: i32, end: f32) -> f32 {
-    let wave_table_size = 44100;
+fn run_oscillator(a: i32, b: i32, mut end: f32) {
+    let wave_table_size = 1024;
     let mut wave_table: Vec<f32> = Vec::with_capacity(wave_table_size);
     // println!("{}", wave_table[0]);
-    for n in 0..wave_table_size {
+    for n in 0..wave_table_size{
             wave_table.push((2.0 * std::f32::consts::PI * n as f32 / wave_table_size as f32).sin());
         //TODO: Noise
         // wave_table.push((2.0 * std::f32::consts::PI * n as f32 / wave_table_size as f32 ) - std::f32::consts::PI/std::f32::consts::PI);
@@ -119,45 +119,69 @@ fn run_oscillator(a: i32, b: i32, end: f32) -> f32 {
         //square
         // wave_table.push(((2.0 * std::f32::consts::PI * n as f32 / wave_table_size as f32 ) - std::f32::consts::PI/std::f32::consts::PI).signum());
         //triangle
-        // wave_table.push(1.0 - 2.0 * ((std::f32::consts::PI * n as f32 / wave_table_size as f32) - std::f32::consts::PI / std::f32::consts::PI).abs());
+        // if(n < wave_table_size-1){
+            // wave_table.push(1.0 - 2.0 * ((std::f32::consts::PI * n as f32 / wave_table_size as f32) - std::f32::consts::PI / std::f32::consts::PI).abs());
+        // }
+        // else{
+        //     wave_table.push(0);
+        // }
     }
-    // let mut oscillator = WavetableOscillator::new(44100, wave_table.clone(),end);
-    // //part 6
-    // let mut oscillator2 = WavetableOscillator::new(44100, wave_table.clone(),end);
-    // let mut oscillator_storage: Vec<WavetableOscillator> = vec![];
-    oscillator.set_frequency(get_frequency(a));
-    // oscillator2.set_frequency(get_frequency(a+6));
-    // // oscillator_storage.push(oscillator);
-    // // oscillator_storage.push(oscillator2);
+    // wave_table.push(0.0);
+    let mut file = File::create("output.txt").unwrap();
 
+    for val in wave_table.clone() {
+        let line = format!("{}\n", val);
+        file.write(line.as_bytes()).unwrap();
+    }
+    // end = wave_table[wave_table_size-1];
+    let mut oscillator = WavetableOscillator::new(44100, wave_table,0.0);
+    // //part 6 TODO
+    oscillator.set_frequency(get_frequency(a));
     // //uncomment for part 3
     // // if a >= 0 {
-    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    // // for i in 0..oscillator_storage.len(){
-    //     let i =1;
-    //     let _result = stream_handle.play_raw(oscillator.convert_samples());
-    //     std::thread::sleep(std::time::Duration::from_millis(b as u64));
-    // // }
+        let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+        let _result = stream_handle.play_raw(oscillator.convert_samples());
+        
+        let spec = hound::WavSpec {
+            channels: 1,
+            sample_rate: 44100,
+            bits_per_sample: 16,
+            sample_format: hound::SampleFormat::Int,
+        };
+        let mut writer = hound::WavWriter::create("sine.wav", spec).unwrap();
+        for t in (0 .. 44100).map(|x| x as f32 / 44100.0) {
+            let sample = (t * 440.0 * 2.0 * std::f32::consts::PI).sin();
+            let amplitude = i16::MAX as f32;
+            writer.write_sample((sample * amplitude) as i16).unwrap();
+        }
+    //     let sink = Sink::try_new(&stream_handle).unwrap();
+    // // for i in 0..b{
+    //     let source = oscillator.convert_samples().take_duration(Duration::from_millis(b as u64));
+        // sink.append(source);
+        // if(source.current_frame_len() == Some(1)){
+        //     sink.stop();
+        // }
+        std::thread::sleep(std::time::Duration::from_millis(b as u64));
+        // sink.sleep_until_end();
+    // }
     //uncomment for part 3
     //}
-    let sine_wave = SineWave::new(440);
-    let buffer = SamplesBuffer::new(1, 44000, sine_wave);
-    let _result = stream_handle.play_raw(buffer);
-    return end;
+    // let sine_wave = SineWave::new(440);
+    // let buffer = SamplesBuffer::new(1, 44000, wave_table);
+    // let _result = stream_handle.play_raw(buffer.convert_samples());
+    // return sink.len() as f32;
 }
-
-fn main() {
+fn main(){
     //part 1 (Plays 440Hz note for 3 seconds)
-    // let a = [69];
-    // let b = [100];
+    let a = [69];
+    let b = [5000];
     //part 2 (Plays Nokia Ringtone)
-    let a  = [76, 74, 66, 68, 73, 71, 62, 64, 71, 69, 61, 64, 69];
-    let b = [150, 150, 300, 300, 150, 150, 300, 300, 150, 150, 300, 300, 600];
+    // let a  = [76, 74, 66, 68, 73, 71, 62, 64, 71, 69, 61, 64, 69];
+    // let b = [300, 300, 500, 500, 300, 300, 500, 500, 300, 300, 500, 500, 800];
     // let mut b: Vec<i32> = vec![];
     // for i in 0..a.len(){
-    //     b.push(10000);
+    //     b.push(500);
     // }
-    let mut end_point: f32 = 0.0;
     //part 3
     // let mut a: Vec<i32> = vec![];
     // let mut b: Vec<f64> = vec![];
@@ -180,10 +204,11 @@ fn main() {
     //     // println!("{}",words[iterator]);
     //     iterator+=1;
     // } 
+    let mut end_point = 0.0;
     for it in a.iter().zip(b.iter()) {
         let (ai, bi) = it;
-        println!("--------------");
-        end_point = run_oscillator(*ai, *bi as i32, end_point);
-        // end_point = run_oscillator(*ai+12, *bi as i32, end_point);
+          run_oscillator(*ai, *bi as i32, end_point);
+        // println!("{}",end_point);
     }
+
 }
