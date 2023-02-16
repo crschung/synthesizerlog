@@ -28,6 +28,6 @@ endin
 
 </CsInstruments>
 <CsScore>
-i "Select" 0 4 1
+i "Select" 0 4 
 </CsScore>
 </CsoundSynthesizer>
