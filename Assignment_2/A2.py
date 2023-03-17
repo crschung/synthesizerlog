@@ -10,9 +10,9 @@ def complexNumber():
     # for i in range(1,100):
     # i=2
     # j = 5
-    for j in range(1,100):
-        array = 2j
-        complex = array*j
+    for i in range(1,100):
+        array = 2+1j
+        complex = array*1j
         output.append(complex)
         # j+=1
     return output
@@ -38,9 +38,9 @@ def readMIDI():
 def main():
     list = complexNumber()
     
-    print(type(list[0]))
-    # mb.plot(list, color = "red")
-    # mb.show()
+    print(list)
+    mb.plot(list, color = "red")
+    mb.show()
     readMIDI()
 
 main()

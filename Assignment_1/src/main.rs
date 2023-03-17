@@ -112,15 +112,15 @@ fn run_oscillator(a: i32, b: i32, mut end: f32) {
     // println!("{}", wave_table[0]);
     for n in 0..wave_table_size{
             wave_table.push((2.0 * std::f32::consts::PI * n as f32 / wave_table_size as f32).sin());
-        //TODO: Noise
+        // TODO: Noise
         // wave_table.push((2.0 * std::f32::consts::PI * n as f32 / wave_table_size as f32 ) - std::f32::consts::PI/std::f32::consts::PI);
-        //sawtooth
+        // sawtooth
         // wave_table.push((2.0 * std::f32::consts::PI * n as f32 / wave_table_size as f32 ) - std::f32::consts::PI/std::f32::consts::PI);
-        //square
+        // square
         // wave_table.push(((2.0 * std::f32::consts::PI * n as f32 / wave_table_size as f32 ) - std::f32::consts::PI/std::f32::consts::PI).signum());
-        //triangle
+        // triangle
         // if(n < wave_table_size-1){
-            // wave_table.push(1.0 - 2.0 * ((std::f32::consts::PI * n as f32 / wave_table_size as f32) - std::f32::consts::PI / std::f32::consts::PI).abs());
+        //     wave_table.push(1.0 - 2.0 * ((std::f32::consts::PI * n as f32 / wave_table_size as f32) - std::f32::consts::PI / std::f32::consts::PI).abs());
         // }
         // else{
         //     wave_table.push(0);
