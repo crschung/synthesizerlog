@@ -19,3 +19,10 @@ freqs = np.linspace(0, 0.5 * srate, len(mag_spectrum))
 max_freq_bin = int(srate / len(mag_spectrum) * 2000)
 p.line(freqs[0:max_freq_bin],mag_spectrum[0:max_freq_bin] * 2 * (1.0 / srate))
 show(p)
+
+
+
+plt.plot("d")
+plt.grid()
+plt.xlabel('Time (seconds)')
+plt.ylabel('Amplitude')
